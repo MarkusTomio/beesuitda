@@ -21,10 +21,10 @@ import { basemaps } from "./data/basemaps";
 import {
   createWmsLayer,
   formatFeatureInfo,
+  getLayerWmsCapabilitiesUrl,
   getLayerWmsUrl,
   getLayerZIndex,
   getLegendUrl,
-  getWmsCapabilitiesUrl,
   gitlabWikiUrl,
   layerGroups,
   projectLayers,
@@ -773,7 +773,7 @@ export default function App() {
 
             <div className="modal-actions">
               <a
-                href={getWmsCapabilitiesUrl()}
+                href={getLayerWmsCapabilitiesUrl(currentActiveLayerInfo)}
                 target="_blank"
                 rel="noreferrer"
                 className="link-button"

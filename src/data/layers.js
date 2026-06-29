@@ -440,6 +440,16 @@ export function getLayerWmsUrl(layerConfig) {
   return `${geoserverRoot}/${workspace}/${layerName}/wms`;
 }
 
+export function getLayerWmsCapabilitiesUrl(layerConfig) {
+  const params = new URLSearchParams({
+    SERVICE: "WMS",
+    REQUEST: "GetCapabilities",
+    VERSION: "1.3.0",
+  });
+
+  return `${getLayerWmsUrl(layerConfig)}?${params.toString()}`;
+}
+
 export function getWmsCapabilitiesUrl() {
   // The capabilities document lists the WMS service metadata and available layers.
   const params = new URLSearchParams({
