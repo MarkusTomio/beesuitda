@@ -611,6 +611,7 @@ export default function App() {
                 <div>
                   <p className="eyebrow">About the project</p>
                   <h2>BeeSuitDa SDI Dashboard</h2>
+                  <p className="version-line">Dashboard version: 1.0.0</p>
                 </div>
 
                 <button
@@ -667,15 +668,6 @@ export default function App() {
                 <button className="primary" onClick={startWalkthrough}>
                   Repeat walkthrough
                 </button>
-
-                <a
-                  href={gitlabWikiUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="link-button"
-                >
-                  Open GitLab Wiki
-                </a>
               </div>
             </div>
           </section>

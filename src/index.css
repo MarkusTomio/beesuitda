@@ -595,6 +595,12 @@ select {
   line-height: 1.5;
 }
 
+.version-line {
+  margin: 0.25rem 0 0;
+  font-size: 0.78rem;
+  font-weight: 750;
+}
+
 .modal-header {
   display: flex;
   align-items: flex-start;
@@ -800,7 +806,7 @@ select {
 
 .walkthrough-card-beside-left-panel {
   left: calc(1.25rem + 280px + 1rem);
-  top: 22rem;
+  top: 11rem;
 }
 
 .walkthrough-card-beside-basemap {

@@ -1,5 +1,7 @@
 # BeeSuitDa Dashboard
 
+Current dashboard version: 1.0.0
+
 Interactive React dashboard for the BeeSuitDa SDI Services Implementation project. It displays beekeeping suitability layers for Salzburg with OpenLayers, GeoServer WMS layers, legends, basemap switching, and GetFeatureInfo map queries.
 
 ## What Is In Here
