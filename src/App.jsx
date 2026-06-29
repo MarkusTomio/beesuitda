@@ -98,6 +98,14 @@ const PROJECT_AUTHORS = [
   },
 ];
 
+const SOURCE_LICENSE_SUMMARY = [
+  "Copernicus Land Monitoring Service / Copernicus DEM / CLC: derived and modified from Copernicus data; source attribution required under Copernicus data terms.",
+  "GeoSphere Austria SPARTACUS: derived and modified from GeoSphere Austria SPARTACUS data; CC BY 4.0.",
+  "OpenStreetMap-derived proximity layers: derived and modified from OpenStreetMap data; © OpenStreetMap contributors; ODbL.",
+  "GBIF species observation layers: derived and modified from GBIF-mediated occurrence data; CC BY-NC; non-commercial reuse only.",
+  "Natura 2000 / EEA protected areas: derived and modified from EEA/Natura 2000 data; source attribution required.",
+];
+
 const WALKTHROUGH_FORCED_OPEN_GROUPS = {
   layers: ["analysis"],
 };
@@ -598,58 +606,77 @@ export default function App() {
             className="about-modal glass"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="modal-header">
-              <div>
-                <p className="eyebrow">About the project</p>
-                <h2>BeeSuitDa SDI Dashboard</h2>
+            <div className="about-modal-scroll">
+              <div className="modal-header">
+                <div>
+                  <p className="eyebrow">About the project</p>
+                  <h2>BeeSuitDa SDI Dashboard</h2>
+                </div>
+
+                <button
+                  className="icon-button"
+                  onClick={() => setIsAboutOpen(false)}
+                  aria-label="Close about dialog"
+                >
+                  ×
+                </button>
               </div>
 
-              <button
-                className="icon-button"
-                onClick={() => setIsAboutOpen(false)}
-                aria-label="Close about dialog"
-              >
-                ×
-              </button>
-            </div>
+              <p>
+                BeeSuitDa brings beekeeping suitability layers for Salzburg into
+                one interactive SDI dashboard. The map combines GeoServer WMS
+                services, legends, basemaps, and click queries so users can
+                inspect suitability criteria directly in the browser.
+              </p>
 
-            <p>
-              BeeSuitDa brings beekeeping suitability layers for Salzburg into
-              one interactive SDI dashboard. The map combines GeoServer WMS
-              services, legends, basemaps, and click queries so users can
-              inspect suitability criteria directly in the browser.
-            </p>
+              <section className="licence-summary">
+                <h3>Licensing & attribution</h3>
+                <p>
+                  BeeSuitDa dashboard layers are derived, modified, and
+                  processed from multiple open geospatial datasets. Original
+                  source licences and attribution requirements are retained.
+                  Detailed licensing, lineage, and metadata information will be
+                  provided through GeoNetwork metadata records.
+                </p>
 
-            <section className="about-authors" aria-labelledby="authors-title">
-              <h3 id="authors-title">Authors</h3>
+                <ul>
+                  {SOURCE_LICENSE_SUMMARY.map((summary) => (
+                    <li key={summary}>{summary}</li>
+                  ))}
+                </ul>
+              </section>
 
-              <div className="author-list">
-                {PROJECT_AUTHORS.map((author) => (
-                  <a
-                    key={author.email}
-                    className="author-contact"
-                    href={`mailto:${author.email}`}
-                  >
-                    <span>{author.name}</span>
-                    <span>{author.email}</span>
-                  </a>
-                ))}
+              <section className="about-authors" aria-labelledby="authors-title">
+                <h3 id="authors-title">Authors</h3>
+
+                <div className="author-list">
+                  {PROJECT_AUTHORS.map((author) => (
+                    <a
+                      key={author.email}
+                      className="author-contact"
+                      href={`mailto:${author.email}`}
+                    >
+                      <span>{author.name}</span>
+                      <span>{author.email}</span>
+                    </a>
+                  ))}
+                </div>
+              </section>
+
+              <div className="modal-actions">
+                <button className="primary" onClick={startWalkthrough}>
+                  Repeat walkthrough
+                </button>
+
+                <a
+                  href={gitlabWikiUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="link-button"
+                >
+                  Open GitLab Wiki
+                </a>
               </div>
-            </section>
-
-            <div className="modal-actions">
-              <button className="primary" onClick={startWalkthrough}>
-                Repeat walkthrough
-              </button>
-
-              <a
-                href={gitlabWikiUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="link-button"
-              >
-                Open GitLab Wiki
-              </a>
             </div>
           </section>
         </div>
@@ -681,7 +708,8 @@ export default function App() {
 
             <p>
               Metadata records will be provided through GeoNetwork. HTML and
-              XML metadata links are currently pending.
+              XML metadata links are currently pending. Detailed licence and
+              lineage information pending GeoNetwork publication.
             </p>
           </section>
         </div>
@@ -748,6 +776,14 @@ export default function App() {
             </div>
 
             <p>{currentActiveLayerInfo.description}</p>
+
+            {currentActiveLayerInfo.licenseNote && (
+              <p className="layer-licence-note">
+                This is a mixed-source derived analytical layer. Reuse is
+                subject to the licences of the underlying input datasets,
+                including non-commercial restrictions from CC BY-NC GBIF data.
+              </p>
+            )}
 
             <dl className="layer-info-list">
               <div>
@@ -829,6 +865,11 @@ export default function App() {
                 </button>
               )}
             </div>
+
+            <p className="metadata-status-note">
+              Detailed licence and lineage information pending GeoNetwork
+              publication.
+            </p>
           </section>
         </div>
       )}
@@ -971,7 +1012,7 @@ export default function App() {
           <div ref={mapRef} className="map" />
 
           <footer className="map-footer">
-            <span>Data © BeeSuitDa Project</span>
+            <span>BeeSuitDa derived layers · source licences retained</span>
             <span>
               Basemap: {activeBasemap.title} · {activeBasemap.attribution}
             </span>

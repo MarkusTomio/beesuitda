@@ -546,6 +546,40 @@ select {
   width: min(460px, calc(100vw - 2rem));
 }
 
+.about-modal {
+  max-height: calc(100vh - 2rem);
+  overflow: hidden;
+  padding: 0;
+}
+
+.about-modal-scroll {
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+  padding: 1.6rem;
+  scrollbar-gutter: stable;
+}
+
+.about-modal-scroll::-webkit-scrollbar {
+  width: 0.6rem;
+}
+
+.about-modal-scroll::-webkit-scrollbar-track {
+  margin: 1.1rem 0;
+  background: transparent;
+}
+
+.about-modal-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(110, 101, 80, 0.35);
+  background-clip: padding-box;
+}
+
+.about-modal-scroll::-webkit-scrollbar-thumb:hover {
+  background: rgba(110, 101, 80, 0.5);
+  background-clip: padding-box;
+}
+
 .welcome-modal h2,
 .about-modal h2,
 .metadata-modal h2 {
@@ -594,23 +628,58 @@ select {
   overflow-wrap: anywhere;
 }
 
+.licence-summary {
+  margin-top: 1rem;
+}
+
+.licence-summary h3 {
+  margin-bottom: 0.55rem;
+}
+
+.licence-summary p {
+  margin-bottom: 0.6rem;
+}
+
+.licence-summary ul {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.layer-licence-note,
+.metadata-status-note {
+  padding: 0.75rem 0.85rem;
+  border-radius: 16px;
+  border: 1px solid rgba(222, 207, 171, 0.45);
+  background: rgba(255, 255, 255, 0.34);
+  font-size: 0.84rem;
+}
+
+.metadata-status-note {
+  margin: 0.8rem 0 0;
+}
+
 .about-authors {
-  margin-top: 1.25rem;
+  margin-top: 1rem;
 }
 
 .about-authors h3 {
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.55rem;
 }
 
 .author-list {
   display: grid;
-  gap: 0.65rem;
+  gap: 0.45rem;
 }
 
 .author-contact {
   display: grid;
   gap: 0.2rem;
-  padding: 0.8rem 0.9rem;
+  padding: 0.65rem 0.8rem;
   border-radius: 18px;
   border: 1px solid rgba(222, 207, 171, 0.45);
   background: rgba(255, 255, 255, 0.42);

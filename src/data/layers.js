@@ -120,6 +120,8 @@ export const projectLayers = [
     metadataHtmlUrl: null,
     metadataXmlUrl: null,
     metadataStatus: "Pending GeoNetwork publication",
+    licenseNote:
+      "Mixed-source derived analytical layer. Reuse is subject to the licences of the underlying input datasets, including non-commercial restrictions from CC BY-NC GBIF data.",
     valueMap: {
       0: "NoData / Water bodies",
       1: "Very low suitability",
