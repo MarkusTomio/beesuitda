@@ -1,10 +1,18 @@
+/**
+ * Basemap catalog.
+ *
+ * App.jsx uses these layer factories to create the background maps underneath
+ * the BeeSuitDa project layers. Keeping basemaps here separates general map
+ * orientation layers from the analytical WMS layers in layers.js.
+ */
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
 import XYZ from "ol/source/XYZ";
 
 /**
- * Basemaps are all EPSG:3857 web map tile services.
- * They provide cartographic context below the project WMS layers.
+ * Basemaps are background maps.
+ * They help the user recognize places, while the BeeSuitDa WMS layers carry
+ * the actual project information on top.
  */
 export const basemaps = {
   cartoLight: {

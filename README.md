@@ -1,16 +1,27 @@
-# React + Vite
+# BeeSuitDa Dashboard
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Interactive React dashboard for the BeeSuitDa SDI Services Implementation project. It displays beekeeping suitability layers for Salzburg with OpenLayers, GeoServer WMS layers, legends, basemap switching, and GetFeatureInfo map queries.
 
-Currently, two official plugins are available:
+## What Is In Here
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- `src/App.jsx` builds the dashboard screen and connects the controls to the map.
+- `src/data/layers.js` lists the GeoServer WMS layers and formats clicked map values.
+- `src/data/basemaps.js` lists the background maps.
+- `src/index.css` contains the visual styling and responsive layout.
+- `public/favicon.svg` is the browser-tab icon.
 
-## React Compiler
+## Run Locally
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+```bash
+npm install
+npm run dev
+```
 
-## Expanding the ESLint configuration
+## Check Before Publishing
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+```bash
+npm run lint
+npm run build
+```
+
+The production build uses the `/beesuitda/` base path configured in `vite.config.js`.

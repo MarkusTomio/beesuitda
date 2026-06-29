@@ -1,3 +1,10 @@
+/**
+ * Project WMS layer catalog and value formatter.
+ *
+ * App.jsx reads this file to know which BeeSuitDa GeoServer layers exist, how
+ * they should be grouped in the layer panel, how legends and capabilities URLs
+ * are built, and how raw GetFeatureInfo values should become readable labels.
+ */
 import TileLayer from "ol/layer/Tile";
 import TileWMS from "ol/source/TileWMS";
 
@@ -7,6 +14,7 @@ export const wmsEndpoint =
 export const gitlabWikiUrl =
   "https://git.sbg.ac.at/st26_856.213/beesuitda/-/wikis/home";
 
+// These groups become the collapsible headings in the layer panel.
 export const layerGroups = [
   {
     id: "analysis",
@@ -85,8 +93,14 @@ export const clcClassMap = {
 };
 
 /**
- * The array order controls panel order.
- * Rendering order is handled separately by getLayerZIndex().
+ * Project layer catalog.
+ *
+ * Each object below describes one GeoServer WMS layer: where it appears in the
+ * panel, how it is queried, how transparent it starts, and how raw values should
+ * be translated into readable text.
+ *
+ * The array order controls panel order. Rendering order is handled separately
+ * by getLayerZIndex().
  */
 export const projectLayers = [
   {
@@ -103,7 +117,9 @@ export const projectLayers = [
     active: true,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
     valueMap: {
       0: "NoData / Water bodies",
       1: "Very low suitability",
@@ -117,7 +133,7 @@ export const projectLayers = [
   {
     id: "rr_mean",
     group: "climate",
-    name: "Mean Precipitation (2015–2025)",
+    name: "Mean Precipitation",
     description:
       "Mean precipitation layer for the 2015–2025 period, used as a climatic criterion in the suitability assessment.",
     geoserverLayer: "ipsdi_st26:rr_mean_beesuitda_3857",
@@ -128,12 +144,14 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "sa_mean",
     group: "climate",
-    name: "Mean Sunshine Duration (2015–2025)",
+    name: "Mean Sunshine Duration",
     description:
       "Mean sunshine duration layer for the 2015–2025 period. Raw values are stored in seconds and displayed as hours and minutes.",
     geoserverLayer: "ipsdi_st26:sa_mean_beesuitda_3857",
@@ -144,12 +162,14 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "tm_mean",
     group: "climate",
-    name: "Mean Temperature (2015–2025)",
+    name: "Mean Temperature",
     description:
       "Mean temperature layer for the 2015–2025 period, used as a climatic criterion in the suitability assessment.",
     geoserverLayer: "ipsdi_st26:tm_mean_beesuitda_3857",
@@ -160,7 +180,9 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
 
   {
@@ -177,7 +199,9 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "slope",
@@ -193,7 +217,9 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
 
   {
@@ -210,7 +236,9 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "water",
@@ -226,7 +254,9 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "roads",
@@ -242,7 +272,9 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "water_proximity",
@@ -258,7 +290,9 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "roads_proximity",
@@ -274,13 +308,15 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
 
   {
     id: "honeybee_density",
     group: "species",
-    name: "Honeybee Observation Density",
+    name: "Honeybee",
     description:
       "Density layer generated from honeybee observation point data. Values represent relative observation density and should be interpreted comparatively within the study area.",
     geoserverLayer: "ipsdi_st26:honeybee_beesuitda_3857",
@@ -291,12 +327,14 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "wildbee_density",
     group: "species",
-    name: "Wild Bee Observation Density",
+    name: "Wild Bee",
     description:
       "Density layer generated from wild bee observation point data. Values represent relative observation density and should be interpreted comparatively within the study area.",
     geoserverLayer: "ipsdi_st26:wildbee_beesuitda_3857",
@@ -307,12 +345,14 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
   {
     id: "hornet_density",
     group: "species",
-    name: "Hornet Observation Density",
+    name: "Hornet",
     description:
       "Density layer generated from hornet observation point data. Values represent relative observation density and should be interpreted comparatively within the study area.",
     geoserverLayer: "ipsdi_st26:hornet_beesuitda_3857",
@@ -323,7 +363,9 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
 
   {
@@ -340,11 +382,14 @@ export const projectLayers = [
     active: false,
     opacity: 0.85,
     queryable: true,
-    metadataUrl: null,
+    metadataHtmlUrl: null,
+    metadataXmlUrl: null,
+    metadataStatus: "Pending GeoNetwork publication",
   },
 ];
 
 export function createWmsLayer(layerConfig) {
+  // Turn one layer description from the catalog into a real OpenLayers WMS layer.
   return new TileLayer({
     visible: layerConfig.active,
     opacity: layerConfig.opacity,
@@ -363,6 +408,7 @@ export function createWmsLayer(layerConfig) {
 }
 
 export function getLayerZIndex(layerConfig) {
+  // Natura 2000 should stay visually above the raster layers when enabled.
   if (layerConfig.id === "natura2000") {
     return 1000;
   }
@@ -375,6 +421,7 @@ export function getLayerZIndex(layerConfig) {
 }
 
 export function getLegendUrl(layerConfig) {
+  // GeoServer creates legend images from WMS query parameters.
   const params = new URLSearchParams({
     SERVICE: "WMS",
     REQUEST: "GetLegendGraphic",
@@ -386,7 +433,15 @@ export function getLegendUrl(layerConfig) {
   return `${wmsEndpoint}?${params.toString()}`;
 }
 
+export function getLayerWmsUrl(layerConfig) {
+  const [workspace, layerName] = layerConfig.geoserverLayer.split(":");
+  const geoserverRoot = wmsEndpoint.replace(/\/[^/]+\/wms$/, "");
+
+  return `${geoserverRoot}/${workspace}/${layerName}/wms`;
+}
+
 export function getWmsCapabilitiesUrl() {
+  // The capabilities document lists the WMS service metadata and available layers.
   const params = new URLSearchParams({
     SERVICE: "WMS",
     REQUEST: "GetCapabilities",
@@ -397,6 +452,7 @@ export function getWmsCapabilitiesUrl() {
 }
 
 function getRawRasterValue(properties) {
+  // GeoServer commonly returns raster cell values as GRAY_INDEX.
   if (!properties) return null;
 
   if ("GRAY_INDEX" in properties) {
@@ -413,6 +469,7 @@ function getRawRasterValue(properties) {
 }
 
 function toNumber(value) {
+  // UI formatting only works for real numbers; empty strings and NaN are ignored.
   if (value === null || value === undefined || value === "") {
     return null;
   }
@@ -436,6 +493,7 @@ function formatInteger(value) {
 }
 
 function formatSecondsAsHoursMinutes(seconds) {
+  // Sunshine duration is stored as seconds, but hours/minutes are easier to read.
   const totalSeconds = Math.max(0, Math.round(seconds));
   let hours = Math.floor(totalSeconds / 3600);
   let minutes = Math.round((totalSeconds % 3600) / 60);
@@ -464,6 +522,9 @@ function noValue() {
 /**
  * Converts raw GeoServer GetFeatureInfo properties into compact user-facing
  * display values.
+ *
+ * Example: GeoServer may return "4" for the suitability layer; the dashboard
+ * shows "High suitability" so the user does not need to know the class code.
  */
 export function formatFeatureInfo(layerConfig, properties) {
   const rawValue = getRawRasterValue(properties);

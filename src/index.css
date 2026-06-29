@@ -1,5 +1,15 @@
+/*
+ * Dashboard stylesheet.
+ *
+ * These styles define the visual system, full-screen layout, panels, map area,
+ * modals, walkthrough overlays, and responsive behavior used by App.jsx. The
+ * CSS class names match the React markup, so layout and interaction states stay
+ * centralized here instead of being scattered through component code.
+ */
+
 /* -------------------------------------------------------------------------- */
 /* Theme                                                                      */
+/* These reusable values make the dashboard easier to restyle in one place.   */
 /* -------------------------------------------------------------------------- */
 
 :root {
@@ -25,6 +35,7 @@
 
 /* -------------------------------------------------------------------------- */
 /* Base                                                                       */
+/* Browser defaults differ, so these rules create a predictable foundation.   */
 /* -------------------------------------------------------------------------- */
 
 * {
@@ -85,6 +96,7 @@ button.primary,
 
 /* -------------------------------------------------------------------------- */
 /* App layout                                                                 */
+/* The page is one full-screen dashboard: top bar, left tools, map, right info.*/
 /* -------------------------------------------------------------------------- */
 
 .app {
@@ -522,18 +534,28 @@ select {
 }
 
 .welcome-modal,
+.about-modal,
+.metadata-modal,
 .layer-info-modal {
   width: min(560px, calc(100vw - 2rem));
   border-radius: 30px;
   padding: 1.6rem;
 }
 
-.welcome-modal h2 {
+.metadata-modal {
+  width: min(460px, calc(100vw - 2rem));
+}
+
+.welcome-modal h2,
+.about-modal h2,
+.metadata-modal h2 {
   font-size: 1.55rem;
   margin-bottom: 0.75rem;
 }
 
 .welcome-modal p,
+.about-modal p,
+.metadata-modal p,
 .layer-info-modal p {
   color: var(--color-muted);
   line-height: 1.5;
@@ -569,6 +591,44 @@ select {
 .layer-info-list dd {
   margin: 0;
   color: var(--color-text);
+  overflow-wrap: anywhere;
+}
+
+.about-authors {
+  margin-top: 1.25rem;
+}
+
+.about-authors h3 {
+  margin-bottom: 0.75rem;
+}
+
+.author-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.author-contact {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 18px;
+  border: 1px solid rgba(222, 207, 171, 0.45);
+  background: rgba(255, 255, 255, 0.42);
+  color: var(--color-text);
+  text-decoration: none;
+}
+
+.author-contact:hover {
+  background: rgba(255, 255, 255, 0.68);
+}
+
+.author-contact span:first-child {
+  font-weight: 850;
+}
+
+.author-contact span:last-child {
+  color: var(--color-muted);
+  font-size: 0.85rem;
   overflow-wrap: anywhere;
 }
 
@@ -694,29 +754,6 @@ select {
   top: calc(1.25rem + 82px + 0.85rem);
 }
 
-/* Legacy fallback positions, harmless if unused. */
-
-.walkthrough-card-bottom-left {
-  left: 1.5rem;
-  bottom: 1.5rem;
-}
-
-.walkthrough-card-bottom-right {
-  right: 1.5rem;
-  bottom: 1.5rem;
-}
-
-.walkthrough-card-center {
-  left: 50%;
-  bottom: 1.5rem;
-  transform: translateX(-50%);
-}
-
-.walkthrough-card-top {
-  right: 2rem;
-  top: calc(1.25rem + 82px + 0.85rem);
-}
-
 /* Arrow bubbles */
 
 .walkthrough-card::after {
@@ -816,11 +853,7 @@ select {
   .walkthrough-card-beside-basemap,
   .walkthrough-card-beside-right-panel,
   .walkthrough-card-map-bottom-left,
-  .walkthrough-card-under-topbar,
-  .walkthrough-card-bottom-left,
-  .walkthrough-card-bottom-right,
-  .walkthrough-card-center,
-  .walkthrough-card-top {
+  .walkthrough-card-under-topbar {
     left: 1rem;
     right: 1rem;
     bottom: 1rem;

@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState } from "react";
+/**
+ * Main dashboard component.
+ *
+ * This file connects the visible React interface to the OpenLayers map. It
+ * imports layer definitions from data/layers.js, basemap definitions from
+ * data/basemaps.js, and renders the panels, walkthrough, map, legend, and
+ * feature-information workflow that make up the BeeSuitDa dashboard.
+ */
+import { useCallback, useEffect, useRef, useState } from "react";
 import Feature from "ol/Feature";
 import Map from "ol/Map";
 import View from "ol/View";
@@ -13,6 +21,7 @@ import { basemaps } from "./data/basemaps";
 import {
   createWmsLayer,
   formatFeatureInfo,
+  getLayerWmsUrl,
   getLayerZIndex,
   getLegendUrl,
   getWmsCapabilitiesUrl,
@@ -20,16 +29,17 @@ import {
   layerGroups,
   projectLayers,
 } from "./data/layers";
-import "./index.css";
 
 const INITIAL_BASEMAP = "cartoLight";
 
-// Approximate extent of the Austrian state of Salzburg.
+// Approximate map boundary of the Austrian state of Salzburg in longitude/latitude.
 const SALZBURG_EXTENT_4326 = [12.0, 46.85, 14.1, 48.15];
 
+// The first map position shown before the map is fitted to Salzburg.
 const INITIAL_CENTER = [13.1, 47.45];
 const INITIAL_ZOOM = 8.3;
 
+// Each walkthrough step points to one visible part of the dashboard.
 const WALKTHROUGH_STEPS = [
   {
     id: "layers",
@@ -69,7 +79,22 @@ const WALKTHROUGH_STEPS = [
     position: "under-topbar",
     pointer: "up",
     text:
-      "The top-right buttons provide access to project resources. About reopens this walkthrough, Metadata will link to metadata records once available, and GitLab Wiki opens the project documentation.",
+      "The top-right buttons provide access to project resources. About opens project details and author contacts, Metadata will link to metadata records once available, and GitLab Wiki opens the project documentation.",
+  },
+];
+
+const PROJECT_AUTHORS = [
+  {
+    name: "Nikša Borovac",
+    email: "niksa.borovac@stud.plus.ac.at",
+  },
+  {
+    name: "Markus Tomio",
+    email: "markus.tomio@student.plus.ac.at",
+  },
+  {
+    name: "Adil Khan",
+    email: "adil.khan@stud.plus.ac.at",
   },
 ];
 
@@ -80,6 +105,7 @@ const WALKTHROUGH_FORCED_OPEN_GROUPS = {
 function fitMapToSalzburg(map, duration = 500) {
   if (!map) return;
 
+  // OpenLayers needs the latest element size before it can fit the view exactly.
   map.updateSize();
 
   map.getView().fit(
@@ -92,12 +118,14 @@ function fitMapToSalzburg(map, duration = 500) {
 }
 
 function getInitialCollapsedGroups() {
+  // Keep the analysis result open first; keep the other groups tucked away.
   return Object.fromEntries(
     layerGroups.map((group) => [group.id, group.id !== "analysis"])
   );
 }
 
 function createClickMarkerLayer() {
+  // This separate vector layer draws the yellow dot after a user clicks the map.
   const markerLayer = new VectorLayer({
     source: new VectorSource(),
     style: [
@@ -134,17 +162,22 @@ function createClickMarkerLayer() {
 }
 
 export default function App() {
+  // Refs store OpenLayers objects. React state stores values that must update the UI.
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapBasemapsRef = useRef({});
   const mapProjectLayersRef = useRef({});
   const clickMarkerLayerRef = useRef(null);
+  const copyFeedbackTimeoutRef = useRef(null);
 
   const [layers, setLayers] = useState(projectLayers);
   const [selectedBasemap, setSelectedBasemap] = useState(INITIAL_BASEMAP);
   const [selectedLegendLayerId, setSelectedLegendLayerId] = useState(null);
   const [selectedLocation, setSelectedLocation] = useState(null);
   const [activeLayerInfo, setActiveLayerInfo] = useState(null);
+  const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [isMetadataNoticeOpen, setIsMetadataNoticeOpen] = useState(false);
+  const [copiedAction, setCopiedAction] = useState(null);
   const [collapsedGroups, setCollapsedGroups] = useState(
     getInitialCollapsedGroups
   );
@@ -159,7 +192,154 @@ export default function App() {
     (step) => step.id === walkthroughStep
   );
 
+  const setClickMarker = useCallback((coordinate) => {
+    const markerSource = clickMarkerLayerRef.current?.getSource();
+
+    if (!markerSource) return;
+
+    markerSource.clear();
+    markerSource.addFeature(new Feature(new Point(coordinate)));
+  }, []);
+
+  const getTopmostQueryableLayerConfig = useCallback(() => {
+    // Map clicks query only one layer: the visible queryable layer on top.
+    const queryableLayers = projectLayers.filter((layerConfig) => {
+      const mapLayer = mapProjectLayersRef.current[layerConfig.id];
+
+      return layerConfig.queryable && mapLayer?.getVisible();
+    });
+
+    queryableLayers.sort((a, b) => getLayerZIndex(b) - getLayerZIndex(a));
+
+    return queryableLayers[0] ?? null;
+  }, []);
+
+  const handleMapClick = useCallback(
+    async (map, event) => {
+      // Convert from the map's projection to familiar longitude/latitude numbers.
+      const [lon, lat] = toLonLat(event.coordinate);
+
+      setClickMarker(event.coordinate);
+
+      setSelectedLocation({
+        status: "loading",
+        lon: lon.toFixed(5),
+        lat: lat.toFixed(5),
+        title: "Querying GeoServer...",
+        result: null,
+        error: null,
+      });
+
+      const layerConfig = getTopmostQueryableLayerConfig();
+
+      if (!layerConfig) {
+        setSelectedLocation({
+          status: "empty",
+          lon: lon.toFixed(5),
+          lat: lat.toFixed(5),
+          title: "No queryable layer active",
+          result: null,
+          error: null,
+        });
+
+        return;
+      }
+
+      const view = map.getView();
+      const resolution = view.getResolution();
+      const projection = view.getProjection();
+
+      try {
+        const mapLayer = mapProjectLayersRef.current[layerConfig.id];
+        const source = mapLayer.getSource();
+
+        // WMS GetFeatureInfo asks GeoServer: "what value is under this click?"
+        const url = source.getFeatureInfoUrl(
+          event.coordinate,
+          resolution,
+          projection,
+          {
+            INFO_FORMAT: "application/json",
+            FEATURE_COUNT: 10,
+          }
+        );
+
+        if (!url) {
+          throw new Error("No GetFeatureInfo URL generated.");
+        }
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+          throw new Error(
+            `GeoServer returned ${response.status} ${response.statusText}`
+          );
+        }
+
+        const contentType = response.headers.get("content-type") ?? "";
+
+        if (!contentType.includes("application/json")) {
+          throw new Error(
+            "GeoServer did not return JSON. Check WMS GetFeatureInfo configuration."
+          );
+        }
+
+        const data = await response.json();
+        const features = data.features ?? [];
+
+        if (features.length === 0) {
+          setSelectedLocation({
+            status: "empty",
+            lon: lon.toFixed(5),
+            lat: lat.toFixed(5),
+            title: "No value found",
+            result: {
+              layerName: layerConfig.name,
+              display: {
+                primaryValue: "No value returned",
+                note: "GeoServer did not return a feature value at this location.",
+              },
+            },
+            error: null,
+          });
+
+          return;
+        }
+
+        setSelectedLocation({
+          status: "success",
+          lon: lon.toFixed(5),
+          lat: lat.toFixed(5),
+          title: "Feature information",
+          result: {
+            layerName: layerConfig.name,
+            display: formatFeatureInfo(
+              layerConfig,
+              features[0].properties ?? {}
+            ),
+          },
+          error: null,
+        });
+      } catch (error) {
+        // Keep failures visible in the side panel instead of hiding them in the console.
+        setSelectedLocation({
+          status: "error",
+          lon: lon.toFixed(5),
+          lat: lat.toFixed(5),
+          title: "GetFeatureInfo failed",
+          result: null,
+          error:
+            error.message ||
+            "The WMS layer could not be queried. Check GeoServer GetFeatureInfo and CORS settings.",
+        });
+      }
+    },
+    [getTopmostQueryableLayerConfig, setClickMarker]
+  );
+
   useEffect(() => {
+    // Build every map layer once when the app opens. React renders the controls;
+    // OpenLayers renders the actual geographic map.
     const createdBasemaps = Object.fromEntries(
       Object.entries(basemaps).map(([id, basemap]) => [id, basemap.layer()])
     );
@@ -204,15 +384,17 @@ export default function App() {
     });
 
     return () => {
+      // Disconnect OpenLayers if React ever removes this component.
       map.setTarget(undefined);
       mapInstanceRef.current = null;
       clickMarkerLayerRef.current = null;
     };
-  }, []);
+  }, [handleMapClick]);
 
   useEffect(() => {
     if (!mapRef.current || !mapInstanceRef.current) return;
 
+    // If the browser resizes a panel, tell OpenLayers to redraw its map canvas.
     const resizeObserver = new ResizeObserver(() => {
       mapInstanceRef.current?.updateSize();
     });
@@ -225,23 +407,43 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    // Modals and walkthrough cards can change available map space after rendering.
     const timeoutId = window.setTimeout(() => {
       mapInstanceRef.current?.updateSize();
     }, 100);
 
     return () => window.clearTimeout(timeoutId);
-  }, [walkthroughStep, activeLayerInfo]);
+  }, [walkthroughStep, activeLayerInfo, isMetadataNoticeOpen]);
+
+  useEffect(
+    () => () => {
+      window.clearTimeout(copyFeedbackTimeoutRef.current);
+    },
+    []
+  );
 
   function highlightClass(stepId) {
+    // Adds the yellow outline only around the current walkthrough target.
     return walkthroughStep === stepId ? " walkthrough-highlight" : "";
   }
 
   function startWalkthrough() {
+    setIsAboutOpen(false);
     setWalkthroughStep(WALKTHROUGH_STEPS[0].id);
   }
 
   function skipWalkthrough() {
     setWalkthroughStep(null);
+  }
+
+  function openAbout() {
+    setWalkthroughStep(null);
+    setIsAboutOpen(true);
+  }
+
+  function openMetadataNotice() {
+    setWalkthroughStep(null);
+    setIsMetadataNoticeOpen(true);
   }
 
   function goToPreviousWalkthroughStep() {
@@ -262,150 +464,16 @@ export default function App() {
     setWalkthroughStep(WALKTHROUGH_STEPS[activeWalkthroughIndex + 1].id);
   }
 
-  function setClickMarker(coordinate) {
-    const markerSource = clickMarkerLayerRef.current?.getSource();
-
-    if (!markerSource) return;
-
-    markerSource.clear();
-    markerSource.addFeature(new Feature(new Point(coordinate)));
-  }
-
   function getTopmostActiveLayer(layerList) {
+    // The topmost layer is the visible project layer with the highest map z-index.
     const activeLayerList = layerList.filter((layer) => layer.active);
 
     activeLayerList.sort((a, b) => getLayerZIndex(b) - getLayerZIndex(a));
 
     return activeLayerList[0] ?? null;
   }
-
-  function getTopmostQueryableLayerConfig() {
-    const queryableLayers = projectLayers.filter((layerConfig) => {
-      const mapLayer = mapProjectLayersRef.current[layerConfig.id];
-
-      return layerConfig.queryable && mapLayer?.getVisible();
-    });
-
-    queryableLayers.sort((a, b) => getLayerZIndex(b) - getLayerZIndex(a));
-
-    return queryableLayers[0] ?? null;
-  }
-
-  async function handleMapClick(map, event) {
-    const [lon, lat] = toLonLat(event.coordinate);
-
-    setClickMarker(event.coordinate);
-
-    setSelectedLocation({
-      status: "loading",
-      lon: lon.toFixed(5),
-      lat: lat.toFixed(5),
-      title: "Querying GeoServer...",
-      result: null,
-      error: null,
-    });
-
-    const layerConfig = getTopmostQueryableLayerConfig();
-
-    if (!layerConfig) {
-      setSelectedLocation({
-        status: "empty",
-        lon: lon.toFixed(5),
-        lat: lat.toFixed(5),
-        title: "No queryable layer active",
-        result: null,
-        error: null,
-      });
-
-      return;
-    }
-
-    const view = map.getView();
-    const resolution = view.getResolution();
-    const projection = view.getProjection();
-
-    try {
-      const mapLayer = mapProjectLayersRef.current[layerConfig.id];
-      const source = mapLayer.getSource();
-
-      const url = source.getFeatureInfoUrl(
-        event.coordinate,
-        resolution,
-        projection,
-        {
-          INFO_FORMAT: "application/json",
-          FEATURE_COUNT: 10,
-        }
-      );
-
-      if (!url) {
-        throw new Error("No GetFeatureInfo URL generated.");
-      }
-
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(
-          `GeoServer returned ${response.status} ${response.statusText}`
-        );
-      }
-
-      const contentType = response.headers.get("content-type") ?? "";
-
-      if (!contentType.includes("application/json")) {
-        throw new Error(
-          "GeoServer did not return JSON. Check WMS GetFeatureInfo configuration."
-        );
-      }
-
-      const data = await response.json();
-      const features = data.features ?? [];
-
-      if (features.length === 0) {
-        setSelectedLocation({
-          status: "empty",
-          lon: lon.toFixed(5),
-          lat: lat.toFixed(5),
-          title: "No value found",
-          result: {
-            layerName: layerConfig.name,
-            display: {
-              primaryValue: "No value returned",
-              note: "GeoServer did not return a feature value at this location.",
-            },
-          },
-          error: null,
-        });
-
-        return;
-      }
-
-      setSelectedLocation({
-        status: "success",
-        lon: lon.toFixed(5),
-        lat: lat.toFixed(5),
-        title: "Feature information",
-        result: {
-          layerName: layerConfig.name,
-          display: formatFeatureInfo(layerConfig, features[0].properties ?? {}),
-        },
-        error: null,
-      });
-    } catch (error) {
-      setSelectedLocation({
-        status: "error",
-        lon: lon.toFixed(5),
-        lat: lat.toFixed(5),
-        title: "GetFeatureInfo failed",
-        result: null,
-        error:
-          error.message ||
-          "The WMS layer could not be queried. Check GeoServer GetFeatureInfo and CORS settings.",
-      });
-    }
-  }
-
   function changeBasemap(id) {
+    // Basemaps sit underneath project layers, so only one should be visible at a time.
     setSelectedBasemap(id);
 
     Object.values(mapBasemapsRef.current).forEach((layer) => {
@@ -416,6 +484,7 @@ export default function App() {
   }
 
   function updateLayerVisibility(layerId, checked) {
+    // Keep React's checkbox state and OpenLayers' actual layer visibility in sync.
     setLayers((currentLayers) =>
       currentLayers.map((layer) =>
         layer.id === layerId ? { ...layer, active: checked } : layer
@@ -428,6 +497,7 @@ export default function App() {
   function updateLayerOpacity(layerId, opacity) {
     const numericOpacity = Number(opacity);
 
+    // The slider value is stored in React and sent to OpenLayers immediately.
     setLayers((currentLayers) =>
       currentLayers.map((layer) =>
         layer.id === layerId ? { ...layer, opacity: numericOpacity } : layer
@@ -448,10 +518,39 @@ export default function App() {
     fitMapToSalzburg(mapInstanceRef.current, 500);
   }
 
+  async function copyTextToClipboard(text, action) {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+    } else {
+      const textArea = document.createElement("textarea");
+
+      textArea.value = text;
+      textArea.setAttribute("readonly", "");
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.append(textArea);
+      textArea.select();
+      document.execCommand("copy");
+      textArea.remove();
+    }
+
+    window.clearTimeout(copyFeedbackTimeoutRef.current);
+    setCopiedAction(action);
+
+    copyFeedbackTimeoutRef.current = window.setTimeout(() => {
+      setCopiedAction(null);
+    }, 1800);
+  }
+
+  async function copyWmsAccess(layerConfig) {
+    await copyTextToClipboard(getLayerWmsUrl(layerConfig), "wmsAccess");
+  }
+
   const activeBasemap = basemaps[selectedBasemap];
   const activeLayers = layers.filter((layer) => layer.active);
   const topmostActiveLayer = getTopmostActiveLayer(layers);
 
+  // If the user has not chosen a legend, show the legend for the top visible layer.
   const selectedLegendLayer =
     activeLayers.find((layer) => layer.id === selectedLegendLayerId) ??
     topmostActiveLayer;
@@ -489,6 +588,101 @@ export default function App() {
                 Skip walkthrough
               </button>
             </div>
+          </section>
+        </div>
+      )}
+
+      {isAboutOpen && (
+        <div className="modal-backdrop" onClick={() => setIsAboutOpen(false)}>
+          <section
+            className="about-modal glass"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">About the project</p>
+                <h2>BeeSuitDa SDI Dashboard</h2>
+              </div>
+
+              <button
+                className="icon-button"
+                onClick={() => setIsAboutOpen(false)}
+                aria-label="Close about dialog"
+              >
+                ×
+              </button>
+            </div>
+
+            <p>
+              BeeSuitDa brings beekeeping suitability layers for Salzburg into
+              one interactive SDI dashboard. The map combines GeoServer WMS
+              services, legends, basemaps, and click queries so users can
+              inspect suitability criteria directly in the browser.
+            </p>
+
+            <section className="about-authors" aria-labelledby="authors-title">
+              <h3 id="authors-title">Authors</h3>
+
+              <div className="author-list">
+                {PROJECT_AUTHORS.map((author) => (
+                  <a
+                    key={author.email}
+                    className="author-contact"
+                    href={`mailto:${author.email}`}
+                  >
+                    <span>{author.name}</span>
+                    <span>{author.email}</span>
+                  </a>
+                ))}
+              </div>
+            </section>
+
+            <div className="modal-actions">
+              <button className="primary" onClick={startWalkthrough}>
+                Repeat walkthrough
+              </button>
+
+              <a
+                href={gitlabWikiUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="link-button"
+              >
+                Open GitLab Wiki
+              </a>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {isMetadataNoticeOpen && (
+        <div
+          className="modal-backdrop"
+          onClick={() => setIsMetadataNoticeOpen(false)}
+        >
+          <section
+            className="metadata-modal glass"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="modal-header">
+              <div>
+                <p className="eyebrow">Metadata</p>
+                <h2>GeoNetwork records pending</h2>
+              </div>
+
+              <button
+                className="icon-button"
+                onClick={() => setIsMetadataNoticeOpen(false)}
+                aria-label="Close metadata notice"
+              >
+                ×
+              </button>
+            </div>
+
+            <p>
+              Metadata records will be provided through GeoNetwork. HTML and
+              XML metadata links are currently pending.
+            </p>
           </section>
         </div>
       )}
@@ -572,8 +766,8 @@ export default function App() {
               </div>
 
               <div>
-                <dt>Current opacity</dt>
-                <dd>{Math.round(currentActiveLayerInfo.opacity * 100)}%</dd>
+                <dt>Queryable</dt>
+                <dd>{currentActiveLayerInfo.queryable ? "Yes" : "No"}</dd>
               </div>
             </dl>
 
@@ -584,8 +778,17 @@ export default function App() {
                 rel="noreferrer"
                 className="link-button"
               >
-                Open WMS
+                WMS Capabilities
               </a>
+
+              <button
+                className="link-button"
+                onClick={() => copyWmsAccess(currentActiveLayerInfo)}
+              >
+                {copiedAction === "wmsAccess"
+                  ? "Copied WMS access"
+                  : "Copy WMS access"}
+              </button>
 
               <a
                 href={getLegendUrl(currentActiveLayerInfo)}
@@ -596,18 +799,33 @@ export default function App() {
                 Open Legend
               </a>
 
-              {currentActiveLayerInfo.metadataUrl ? (
+              {currentActiveLayerInfo.metadataHtmlUrl ? (
                 <a
-                  href={currentActiveLayerInfo.metadataUrl}
+                  href={currentActiveLayerInfo.metadataHtmlUrl}
                   target="_blank"
                   rel="noreferrer"
                   className="link-button primary-link"
                 >
-                  Open Metadata
+                  Metadata HTML
                 </a>
               ) : (
                 <button className="link-button disabled" disabled>
-                  Metadata pending
+                  Metadata HTML pending
+                </button>
+              )}
+
+              {currentActiveLayerInfo.metadataXmlUrl ? (
+                <a
+                  href={currentActiveLayerInfo.metadataXmlUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="link-button primary-link"
+                >
+                  Metadata XML
+                </a>
+              ) : (
+                <button className="link-button disabled" disabled>
+                  Metadata XML pending
                 </button>
               )}
             </div>
@@ -622,8 +840,8 @@ export default function App() {
         </div>
 
         <nav className="topbar-actions">
-          <button onClick={() => setWalkthroughStep("intro")}>About</button>
-          <button title="Metadata records will be linked later">Metadata</button>
+          <button onClick={openAbout}>About</button>
+          <button onClick={openMetadataNotice}>Metadata</button>
           <a
             className="topbar-link primary"
             href={gitlabWikiUrl}
