@@ -686,26 +686,80 @@ export default function App() {
             className="metadata-modal glass"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className="modal-header">
-              <div>
-                <p className="eyebrow">Metadata</p>
-                <h2>GeoNetwork records pending</h2>
+            <div className="metadata-modal-scroll">
+              <div className="modal-header">
+                <div>
+                  <p className="eyebrow">Metadata</p>
+                  <h2>GeoNetwork records pending</h2>
+                </div>
+
+                <button
+                  className="icon-button"
+                  onClick={() => setIsMetadataNoticeOpen(false)}
+                  aria-label="Close metadata notice"
+                >
+                  ×
+                </button>
               </div>
 
-              <button
-                className="icon-button"
-                onClick={() => setIsMetadataNoticeOpen(false)}
-                aria-label="Close metadata notice"
-              >
-                ×
-              </button>
-            </div>
+              <p>
+                Metadata records will be provided through GeoNetwork. HTML and
+                XML metadata links are currently pending for unpublished layers.
+                Detailed licence and lineage information pending GeoNetwork
+                publication.
+              </p>
 
-            <p>
-              Metadata records will be provided through GeoNetwork. HTML and
-              XML metadata links are currently pending. Detailed licence and
-              lineage information pending GeoNetwork publication.
-            </p>
+              <div className="metadata-link-table">
+                <div className="metadata-link-row metadata-link-row-header">
+                  <span>Layer</span>
+                  <span>HTML</span>
+                  <span>XML</span>
+                </div>
+
+                {layers.map((layer) => (
+                  <div className="metadata-link-row" key={layer.id}>
+                    <span className="metadata-layer-name">{layer.name}</span>
+
+                    {layer.metadataHtmlUrl ? (
+                      <a
+                        href={layer.metadataHtmlUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="metadata-link-button"
+                      >
+                        HTML
+                      </a>
+                    ) : (
+                      <button
+                        className="metadata-link-button disabled"
+                        disabled
+                      >
+                        Pending
+                      </button>
+                    )}
+
+                    {layer.metadataXmlUrl ? (
+                      <a
+                        href={layer.metadataXmlUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        download
+                        className="metadata-link-button"
+                      >
+                        XML
+                      </a>
+                    ) : (
+                      <button
+                        className="metadata-link-button disabled"
+                        disabled
+                      >
+                        Pending
+                      </button>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
           </section>
         </div>
       )}
