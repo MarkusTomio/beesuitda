@@ -117,9 +117,11 @@ export const projectLayers = [
     active: true,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
-    metadataStatus: "Pending GeoNetwork publication",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/643f8d9a-d277-4811-be99-bb502fde8971",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/643f8d9a-d277-4811-be99-bb502fde8971/formatters/xml?approved=true",
+    metadataStatus: "Published in GeoNetwork",
     licenseNote:
       "Mixed-source derived analytical layer. Reuse is subject to the licences of the underlying input datasets, including non-commercial restrictions from CC BY-NC GBIF data.",
     valueMap: {
@@ -410,7 +412,29 @@ export function createWmsLayer(layerConfig) {
 }
 
 export function getLayerZIndex(layerConfig) {
-  // Natura 2000 should stay visually above the raster layers when enabled.
+  if (layerConfig.id === "natura2000") {
+    return 1000;
+  }
+
+  if (layerConfig.group === "species") {
+    const speciesLayerIds = projectLayers
+      .filter((layer) => layer.group === "species")
+      .map((layer) => layer.id);
+    const speciesIndex = speciesLayerIds.findIndex(
+      (layerId) => layerId === layerConfig.id
+    );
+
+    return 900 + (speciesLayerIds.length - speciesIndex);
+  }
+
+  const displayIndex = projectLayers.findIndex(
+    (layer) => layer.id === layerConfig.id
+  );
+
+  return projectLayers.length - displayIndex;
+}
+
+export function getLayerLegendPriority(layerConfig) {
   if (layerConfig.id === "natura2000") {
     return 1000;
   }

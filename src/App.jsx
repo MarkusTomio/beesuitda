@@ -21,6 +21,7 @@ import { basemaps } from "./data/basemaps";
 import {
   createWmsLayer,
   formatFeatureInfo,
+  getLayerLegendPriority,
   getLayerWmsCapabilitiesUrl,
   getLayerWmsUrl,
   getLayerZIndex,
@@ -472,14 +473,16 @@ export default function App() {
     setWalkthroughStep(WALKTHROUGH_STEPS[activeWalkthroughIndex + 1].id);
   }
 
-  function getTopmostActiveLayer(layerList) {
-    // The topmost layer is the visible project layer with the highest map z-index.
+  function getDefaultLegendLayer(layerList) {
     const activeLayerList = layerList.filter((layer) => layer.active);
 
-    activeLayerList.sort((a, b) => getLayerZIndex(b) - getLayerZIndex(a));
+    activeLayerList.sort(
+      (a, b) => getLayerLegendPriority(b) - getLayerLegendPriority(a)
+    );
 
     return activeLayerList[0] ?? null;
   }
+
   function changeBasemap(id) {
     // Basemaps sit underneath project layers, so only one should be visible at a time.
     setSelectedBasemap(id);
@@ -556,12 +559,12 @@ export default function App() {
 
   const activeBasemap = basemaps[selectedBasemap];
   const activeLayers = layers.filter((layer) => layer.active);
-  const topmostActiveLayer = getTopmostActiveLayer(layers);
+  const defaultLegendLayer = getDefaultLegendLayer(layers);
 
-  // If the user has not chosen a legend, show the legend for the top visible layer.
+  // If the user has not chosen a legend, follow the layer panel hierarchy.
   const selectedLegendLayer =
     activeLayers.find((layer) => layer.id === selectedLegendLayerId) ??
-    topmostActiveLayer;
+    defaultLegendLayer;
 
   const currentActiveLayerInfo = activeLayerInfo
     ? layers.find((layer) => layer.id === activeLayerInfo.id) ?? activeLayerInfo
@@ -847,6 +850,7 @@ export default function App() {
                   href={currentActiveLayerInfo.metadataXmlUrl}
                   target="_blank"
                   rel="noreferrer"
+                  download
                   className="link-button primary-link"
                 >
                   Metadata XML
