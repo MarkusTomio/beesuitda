@@ -69,8 +69,8 @@ const WALKTHROUGH_STEPS = [
   {
     id: "basemaps",
     title: "Basemaps",
-    position: "beside-basemap",
-    pointer: "left",
+    position: "under-basemap",
+    pointer: "up",
     text:
       "Use the basemap selector to change the background map. Basemaps are only used for orientation; the analytical BeeSuitDa layers remain on top.",
   },
@@ -80,7 +80,7 @@ const WALKTHROUGH_STEPS = [
     position: "under-topbar",
     pointer: "up",
     text:
-      "The top-right buttons provide access to project resources. About opens project details and author contacts, Metadata will link to metadata records once available, and GitLab Wiki opens the project documentation.",
+      "The top-right buttons provide access to project resources. About opens project details and author contacts, Metadata provides links to HTML and XML metadata records, and GitLab Wiki opens the project documentation.",
   },
 ];
 
@@ -559,6 +559,22 @@ export default function App() {
 
   const activeBasemap = basemaps[selectedBasemap];
   const activeLayers = layers.filter((layer) => layer.active);
+  const metadataRows = [
+    ...layers.map((layer) => ({
+      id: `layer-${layer.id}`,
+      name: layer.name,
+      type: "Layer",
+      metadataHtmlUrl: layer.metadataHtmlUrl,
+      metadataXmlUrl: layer.metadataXmlUrl,
+    })),
+    ...Object.values(basemaps).map((basemap) => ({
+      id: `basemap-${basemap.id}`,
+      name: basemap.title,
+      type: "Basemap",
+      metadataHtmlUrl: basemap.metadataHtmlUrl,
+      metadataXmlUrl: basemap.metadataXmlUrl,
+    })),
+  ];
   const defaultLegendLayer = getDefaultLegendLayer(layers);
 
   // If the user has not chosen a legend, follow the layer panel hierarchy.
@@ -639,7 +655,7 @@ export default function App() {
                   BeeSuitDa dashboard layers are derived, modified, and
                   processed from multiple open geospatial datasets. Original
                   source licences and attribution requirements are retained.
-                  Detailed licensing, lineage, and metadata information will be
+                  Detailed lineage and metadata information are
                   provided through GeoNetwork metadata records.
                 </p>
 
@@ -690,7 +706,7 @@ export default function App() {
               <div className="modal-header">
                 <div>
                   <p className="eyebrow">Metadata</p>
-                  <h2>GeoNetwork records pending</h2>
+                  <h2>Metadata records</h2>
                 </div>
 
                 <button
@@ -703,26 +719,26 @@ export default function App() {
               </div>
 
               <p>
-                Metadata records will be provided through GeoNetwork. HTML and
-                XML metadata links are currently pending for unpublished layers.
-                Detailed licence and lineage information pending GeoNetwork
-                publication.
+                Project layer metadata records are provided through GeoNetwork.
+                Basemap rows link to provider documentation where available.
               </p>
 
               <div className="metadata-link-table">
                 <div className="metadata-link-row metadata-link-row-header">
-                  <span>Layer</span>
+                  <span>Dataset</span>
+                  <span>Type</span>
                   <span>HTML</span>
                   <span>XML</span>
                 </div>
 
-                {layers.map((layer) => (
-                  <div className="metadata-link-row" key={layer.id}>
-                    <span className="metadata-layer-name">{layer.name}</span>
+                {metadataRows.map((item) => (
+                  <div className="metadata-link-row" key={item.id}>
+                    <span className="metadata-layer-name">{item.name}</span>
+                    <span className="metadata-item-type">{item.type}</span>
 
-                    {layer.metadataHtmlUrl ? (
+                    {item.metadataHtmlUrl ? (
                       <a
-                        href={layer.metadataHtmlUrl}
+                        href={item.metadataHtmlUrl}
                         target="_blank"
                         rel="noreferrer"
                         className="metadata-link-button"
@@ -738,9 +754,9 @@ export default function App() {
                       </button>
                     )}
 
-                    {layer.metadataXmlUrl ? (
+                    {item.metadataXmlUrl ? (
                       <a
-                        href={layer.metadataXmlUrl}
+                        href={item.metadataXmlUrl}
                         target="_blank"
                         rel="noreferrer"
                         download
@@ -927,7 +943,7 @@ export default function App() {
       <header className={`topbar glass${highlightClass("resources")}`}>
         <div>
           <p className="eyebrow">26S856263: SDI Services Implementation</p>
-          <h1>BeeSuitDa — SDI-Based Beekeeping Suitability Dashboard</h1>
+          <h1>BeeSuitDa - SDI-Based Beekeeping Suitability Dashboard</h1>
         </div>
 
         <nav className="topbar-actions">
@@ -946,23 +962,14 @@ export default function App() {
 
       <main className="dashboard">
         <aside className="panel glass">
-          <div className={`info-block${highlightClass("basemaps")}`}>
-            <p className="eyebrow">Basemap</p>
-
-            <select
-              value={selectedBasemap}
-              onChange={(event) => changeBasemap(event.target.value)}
-            >
-              {Object.entries(basemaps).map(([id, basemap]) => (
-                <option key={id} value={id}>
-                  {basemap.title}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="panel-header">
-            <h2>Layers</h2>
+          <div className="panel-header layer-panel-header">
+            <h2>Choose What the Map Shows</h2>
+            <p>
+              Each layer shows a different part of the suitability analysis.
+              Open a category and turn on a layer to explore it. For the
+              clearest view, use one data layer at a time and adjust its
+              transparency to reveal the map underneath.
+            </p>
           </div>
 
           <div className={`layer-groups${highlightClass("layers")}`}>
@@ -1056,15 +1063,54 @@ export default function App() {
               </p>
             </div>
 
-            <button onClick={resetView}>Reset View</button>
+            <div className="map-toolbar-actions">
+              <select
+                className={`map-control map-basemap-select${highlightClass(
+                  "basemaps"
+                )}`}
+                value={selectedBasemap}
+                onChange={(event) => changeBasemap(event.target.value)}
+                aria-label="Basemap"
+              >
+                <option value={selectedBasemap} hidden>
+                  Basemap: {activeBasemap.title}
+                </option>
+                {Object.entries(basemaps).map(([id, basemap]) => (
+                  <option key={id} value={id}>
+                    {basemap.title}
+                  </option>
+                ))}
+              </select>
+
+              <button
+                className="map-control map-reset-button"
+                onClick={resetView}
+              >
+                Reset View
+              </button>
+            </div>
           </div>
 
           <div ref={mapRef} className="map" />
 
           <footer className="map-footer">
             <span>BeeSuitDa derived layers · source licences retained</span>
-            <span>
-              Basemap: {activeBasemap.title} · {activeBasemap.attribution}
+            <span className="map-attribution">
+              Basemap: {activeBasemap.title} ·{" "}
+              {activeBasemap.attribution.map((part, index) =>
+                part.href ? (
+                  <a
+                    key={`${part.text}-${index}`}
+                    href={part.href}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    {part.text}
+                  </a>
+                ) : (
+                  <span key={`${part.text}-${index}`}>{part.text}</span>
+                )
+              )}
             </span>
           </footer>
         </section>

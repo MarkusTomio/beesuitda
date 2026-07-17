@@ -262,6 +262,13 @@ h4 {
   margin-bottom: 1rem;
 }
 
+.map-toolbar-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 0.55rem;
+}
+
 /* -------------------------------------------------------------------------- */
 /* Map                                                                        */
 /* -------------------------------------------------------------------------- */
@@ -277,6 +284,32 @@ h4 {
   color: var(--color-muted);
   font-size: 0.78rem;
   font-weight: 650;
+}
+
+.map-control {
+  height: 2.6rem;
+  border: 1px solid rgba(30, 48, 38, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.55);
+  color: var(--color-text);
+  font-size: 0.9rem;
+  font-weight: 750;
+  backdrop-filter: blur(14px);
+}
+
+.map-basemap-select {
+  width: 15.5rem;
+  max-width: 48vw;
+  padding: 0 2.1rem 0 0.95rem;
+}
+
+.map-reset-button {
+  min-width: 8.2rem;
+  padding: 0 1rem;
+}
+
+.map-control:hover {
+  background: rgba(255, 255, 255, 0.82);
 }
 
 .map {
@@ -297,6 +330,20 @@ h4 {
   color: var(--color-muted);
   font-size: 0.78rem;
   font-weight: 650;
+}
+
+.map-attribution {
+  text-align: right;
+}
+
+.map-attribution a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.map-attribution a:hover {
+  color: var(--color-text);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -331,6 +378,18 @@ select {
 /* -------------------------------------------------------------------------- */
 /* Layer panel                                                                */
 /* -------------------------------------------------------------------------- */
+
+.layer-panel-header {
+  display: block;
+}
+
+.layer-panel-header p {
+  margin: 0.45rem 0 0;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+  line-height: 1.45;
+}
 
 .layer-groups {
   display: grid;
@@ -625,7 +684,7 @@ select {
 
 .metadata-link-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 80px 80px;
+  grid-template-columns: minmax(0, 1fr) 82px 80px 80px;
   gap: 0.5rem;
   align-items: center;
   padding: 0.45rem;
@@ -649,6 +708,13 @@ select {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.metadata-item-type {
+  min-width: 0;
+  color: var(--color-muted);
+  font-size: 0.76rem;
+  font-weight: 800;
 }
 
 .metadata-link-button {
@@ -876,8 +942,13 @@ select {
 }
 
 .walkthrough-card-beside-basemap {
-  left: calc(1.25rem + 280px + 1rem);
-  top: 4.5rem;
+  left: calc(10rem + 280px);
+  top: 5rem;
+}
+
+.walkthrough-card-under-basemap {
+  right: calc(9.6rem + 310px + 1.25rem + 1rem);
+  top: calc(3rem + 82px + 5rem);
 }
 
 .walkthrough-card-beside-right-panel {
@@ -992,6 +1063,7 @@ select {
   .walkthrough-card,
   .walkthrough-card-beside-left-panel,
   .walkthrough-card-beside-basemap,
+  .walkthrough-card-under-basemap,
   .walkthrough-card-beside-right-panel,
   .walkthrough-card-map-bottom-left,
   .walkthrough-card-under-topbar {

@@ -22,7 +22,7 @@ export const layerGroups = [
   },
   {
     id: "climate",
-    title: "Climatic layers (2015–2025)",
+    title: "Climatic layers (2015-2025)",
   },
   {
     id: "topography",
@@ -118,9 +118,9 @@ export const projectLayers = [
     opacity: 0.75,
     queryable: true,
     metadataHtmlUrl:
-      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/643f8d9a-d277-4811-be99-bb502fde8971",
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/6730bd19-fca4-40d1-aa07-5779f8d1f901",
     metadataXmlUrl:
-      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/643f8d9a-d277-4811-be99-bb502fde8971/formatters/xml?approved=true",
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/6730bd19-fca4-40d1-aa07-5779f8d1f901/formatters/xml?approved=true",
     metadataStatus: "Published in GeoNetwork",
     licenseNote:
       "Mixed-source derived analytical layer. Reuse is subject to the licences of the underlying input datasets, including non-commercial restrictions from CC BY-NC GBIF data.",
@@ -148,8 +148,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/2e153dc4-4547-42b1-ba9b-775d6c702283",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/2e153dc4-4547-42b1-ba9b-775d6c702283/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
   {
@@ -166,8 +166,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/8bdd56d7-7239-4ef0-abc0-e7b7e6a15dce",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/8bdd56d7-7239-4ef0-abc0-e7b7e6a15dce/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
   {
@@ -184,8 +184,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/802cde45-699c-46c3-b476-15ae9fd6d870",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/802cde45-699c-46c3-b476-15ae9fd6d870/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
 
@@ -203,8 +203,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/f417a16f-5ebd-48ee-8297-91bc8f343975",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/f417a16f-5ebd-48ee-8297-91bc8f343975/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
   {
@@ -221,8 +221,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/def7721f-89bd-4b5d-9253-87d2310fb140",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/def7721f-89bd-4b5d-9253-87d2310fb140/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
 
@@ -240,44 +240,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
-    metadataStatus: "Pending GeoNetwork publication",
-  },
-  {
-    id: "water",
-    group: "landcover",
-    name: "Water Bodies",
-    description:
-      "Binary water-body layer. Value 1 indicates water body presence, value 0 indicates no water body within the study area.",
-    geoserverLayer: "ipsdi_st26:water_beesuitda_3857",
-    serviceType: "WMS",
-    crs: "EPSG:3857",
-    type: "wms",
-    valueType: "water_binary",
-    active: false,
-    opacity: 0.75,
-    queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
-    metadataStatus: "Pending GeoNetwork publication",
-  },
-  {
-    id: "roads",
-    group: "landcover",
-    name: "Road Network",
-    description:
-      "Binary road network layer. Value 1 indicates road presence, value 0 indicates no road within the study area.",
-    geoserverLayer: "ipsdi_st26:roads_beesuitda_3857",
-    serviceType: "WMS",
-    crs: "EPSG:3857",
-    type: "wms",
-    valueType: "road_binary",
-    active: false,
-    opacity: 0.75,
-    queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/b1a733bb-c650-437f-be9c-b22a85ef0250",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/b1a733bb-c650-437f-be9c-b22a85ef0250/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
   {
@@ -294,8 +258,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/ee2a7e5f-3dfb-4e36-a361-3edf88458b5a",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/ee2a7e5f-3dfb-4e36-a361-3edf88458b5a/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
   {
@@ -312,8 +276,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/92f53e7b-a8a8-427f-983c-327845ae9bc3",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/92f53e7b-a8a8-427f-983c-327845ae9bc3/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
 
@@ -331,8 +295,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/643f8d9a-d277-4811-be99-bb502fde8971",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/643f8d9a-d277-4811-be99-bb502fde8971/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
   {
@@ -349,8 +313,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/249ec168-eaaa-446c-8f91-519e674311be",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/249ec168-eaaa-446c-8f91-519e674311be/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
   {
@@ -367,8 +331,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.75,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/9a44ce5b-ae4c-4b7d-be8f-3854019c908b",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/9a44ce5b-ae4c-4b7d-be8f-3854019c908b/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
 
@@ -386,8 +350,8 @@ export const projectLayers = [
     active: false,
     opacity: 0.85,
     queryable: true,
-    metadataHtmlUrl: null,
-    metadataXmlUrl: null,
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/33b8f3f9-8f35-4223-b6ad-fda21f69cad9",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/33b8f3f9-8f35-4223-b6ad-fda21f69cad9/formatters/xml?approved=true",
     metadataStatus: "Pending GeoNetwork publication",
   },
 ];
@@ -587,7 +551,7 @@ export function formatFeatureInfo(layerConfig, properties) {
 
     case "precipitation":
       return {
-        primaryValue: `${formatNumber(numericValue, 2)} mm`,
+        primaryValue: `${formatInteger(numericValue)} mm`,
       };
 
     case "sunshine_seconds":
@@ -597,7 +561,7 @@ export function formatFeatureInfo(layerConfig, properties) {
 
     case "temperature":
       return {
-        primaryValue: `${formatNumber(numericValue, 2)} °C`,
+        primaryValue: `${formatNumber(numericValue, 1)} °C`,
       };
 
     case "elevation":
@@ -637,7 +601,7 @@ export function formatFeatureInfo(layerConfig, properties) {
 
     case "density":
       return {
-        primaryValue: formatNumber(numericValue, 2),
+        primaryValue: formatInteger(numericValue),
         secondaryValue: "Relative density value",
       };
 

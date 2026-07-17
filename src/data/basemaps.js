@@ -18,7 +18,20 @@ export const basemaps = {
   cartoLight: {
     id: "cartoLight",
     title: "Carto Light",
-    attribution: "© OpenStreetMap contributors © CARTO",
+    attribution: [
+      {
+        text: "© OpenStreetMap contributors",
+        href: "https://www.openstreetmap.org/copyright",
+      },
+      { text: ", " },
+      {
+        text: "© CARTO",
+        href: "https://carto.com/attribution/",
+      },
+    ],
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/403dbf72-8011-4d77-8af8-855ed9525afd",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/403dbf72-8011-4d77-8af8-855ed9525afd/formatters/xml?approved=true",
+    metadataStatus: "Provider documentation",
     layer: () =>
       new TileLayer({
         visible: true,
@@ -32,11 +45,21 @@ export const basemaps = {
   osm: {
     id: "osm",
     title: "OpenStreetMap",
-    attribution: "© OpenStreetMap contributors",
+    attribution: [
+      {
+        text: "© OpenStreetMap contributors",
+        href: "https://www.openstreetmap.org/copyright",
+      },
+    ],
+    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/015e97d7-4732-4eed-a74d-56ca60195449",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/015e97d7-4732-4eed-a74d-56ca60195449/formatters/xml?approved=true",
+    metadataStatus: "Provider documentation",
     layer: () =>
       new TileLayer({
         visible: false,
         source: new OSM({
+          // Attribution is rendered consistently for every basemap in the map footer.
+          attributions: [],
           crossOrigin: "anonymous",
         }),
       }),
@@ -45,7 +68,21 @@ export const basemaps = {
   satellite: {
     id: "satellite",
     title: "Satellite",
-    attribution: "Imagery © Esri, Maxar, Earthstar Geographics",
+    attribution: [
+      { text: "Powered by " },
+      {
+        text: "Esri",
+        href: "https://www.esri.com/",
+      },
+      {
+        text:
+          " · Sources: Esri, Maxar, Earthstar Geographics, and the GIS User Community",
+      },
+    ],
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/d6977ca5-1423-4ed4-8e27-5c4cf26cf8ee",
+    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/d6977ca5-1423-4ed4-8e27-5c4cf26cf8ee/formatters/xml?approved=true",
+    metadataStatus: "Provider documentation",
     layer: () =>
       new TileLayer({
         visible: false,
