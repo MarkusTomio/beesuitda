@@ -13,6 +13,13 @@ import XYZ from "ol/source/XYZ";
  * Basemaps are background maps.
  * They help the user recognize places, while the BeeSuitDa WMS layers carry
  * the actual project information on top.
+ *
+ * Each basemap has:
+ * - id: stable value used by the basemap select box.
+ * - title: label shown in the UI.
+ * - attribution: text/link pieces rendered in the map footer.
+ * - metadata links: records shown in the metadata modal.
+ * - layer(): factory that creates a fresh OpenLayers layer when App.jsx starts.
  */
 export const basemaps = {
   cartoLight: {
@@ -29,8 +36,10 @@ export const basemaps = {
         href: "https://carto.com/attribution/",
       },
     ],
-    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/403dbf72-8011-4d77-8af8-855ed9525afd",
-    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/403dbf72-8011-4d77-8af8-855ed9525afd/formatters/xml?approved=true",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/403dbf72-8011-4d77-8af8-855ed9525afd",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/403dbf72-8011-4d77-8af8-855ed9525afd/formatters/xml?approved=true",
     metadataStatus: "Provider documentation",
     layer: () =>
       new TileLayer({
@@ -51,8 +60,10 @@ export const basemaps = {
         href: "https://www.openstreetmap.org/copyright",
       },
     ],
-    metadataHtmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/015e97d7-4732-4eed-a74d-56ca60195449",
-    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/015e97d7-4732-4eed-a74d-56ca60195449/formatters/xml?approved=true",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/015e97d7-4732-4eed-a74d-56ca60195449",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/015e97d7-4732-4eed-a74d-56ca60195449/formatters/xml?approved=true",
     metadataStatus: "Provider documentation",
     layer: () =>
       new TileLayer({
@@ -81,7 +92,8 @@ export const basemaps = {
     ],
     metadataHtmlUrl:
       "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/d6977ca5-1423-4ed4-8e27-5c4cf26cf8ee",
-    metadataXmlUrl: "https://geoserver22s.zgis.at/geonetwork/srv/api/records/d6977ca5-1423-4ed4-8e27-5c4cf26cf8ee/formatters/xml?approved=true",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/d6977ca5-1423-4ed4-8e27-5c4cf26cf8ee/formatters/xml?approved=true",
     metadataStatus: "Provider documentation",
     layer: () =>
       new TileLayer({

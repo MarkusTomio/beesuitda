@@ -1,10 +1,13 @@
 /**
  * Main dashboard component.
  *
- * This file connects the visible React interface to the OpenLayers map. It
- * imports layer definitions from data/layers.js, basemap definitions from
- * data/basemaps.js, and renders the panels, walkthrough, map, legend, and
- * feature-information workflow that make up the BeeSuitDa dashboard.
+ * This file is the bridge between two worlds:
+ * - React renders the user interface: panels, buttons, modals, legends, and
+ *   text shown in the browser.
+ * - OpenLayers renders the geographic map and talks to GeoServer WMS layers.
+ *
+ * The data catalogs in data/layers.js and data/basemaps.js describe what can
+ * be shown. This component turns those descriptions into a working dashboard.
  */
 import { useCallback, useEffect, useRef, useState } from "react";
 import Feature from "ol/Feature";
@@ -19,6 +22,7 @@ import "ol/ol.css";
 
 import { basemaps } from "./data/basemaps";
 import {
+  baseDataMetadataRecords,
   createWmsLayer,
   formatFeatureInfo,
   getLayerLegendPriority,
@@ -39,8 +43,13 @@ const SALZBURG_EXTENT_4326 = [12.0, 46.85, 14.1, 48.15];
 // The first map position shown before the map is fitted to Salzburg.
 const INITIAL_CENTER = [13.1, 47.45];
 const INITIAL_ZOOM = 8.3;
+const MAP_FIT_PADDING = [24, 24, 24, 24];
+const MAP_RESIZE_DELAY_MS = 100;
+const COPY_FEEDBACK_DURATION_MS = 1800;
+const CLICK_MARKER_Z_INDEX = 2000;
 
-// Each walkthrough step points to one visible part of the dashboard.
+// Each walkthrough step points to one visible part of the dashboard. The
+// position and pointer values are CSS class suffixes defined in index.css.
 const WALKTHROUGH_STEPS = [
   {
     id: "layers",
@@ -107,6 +116,8 @@ const SOURCE_LICENSE_SUMMARY = [
   "Natura 2000 / EEA protected areas: derived and modified from EEA/Natura 2000 data; source attribution required.",
 ];
 
+// Some walkthrough targets are hidden inside collapsed groups. This map opens
+// those groups only while the matching walkthrough step is active.
 const WALKTHROUGH_FORCED_OPEN_GROUPS = {
   layers: ["analysis"],
 };
@@ -120,7 +131,7 @@ function fitMapToSalzburg(map, duration = 500) {
   map.getView().fit(
     transformExtent(SALZBURG_EXTENT_4326, "EPSG:4326", "EPSG:3857"),
     {
-      padding: [24, 24, 24, 24],
+      padding: MAP_FIT_PADDING,
       duration,
     }
   );
@@ -165,13 +176,43 @@ function createClickMarkerLayer() {
     ],
   });
 
-  markerLayer.setZIndex(2000);
+  markerLayer.setZIndex(CLICK_MARKER_Z_INDEX);
 
   return markerLayer;
 }
 
+function createMetadataRows(layerList) {
+  // The metadata modal shows project WMS layers first, then basemaps, then
+  // original base datasets used in the analysis. The row shape is the same for
+  // all three categories so the table can render them with one loop.
+  return [
+    ...layerList.map((layer) => ({
+      id: `layer-${layer.id}`,
+      name: layer.name,
+      type: "Layer",
+      metadataHtmlUrl: layer.metadataHtmlUrl,
+      metadataXmlUrl: layer.metadataXmlUrl,
+    })),
+    ...Object.values(basemaps).map((basemap) => ({
+      id: `basemap-${basemap.id}`,
+      name: basemap.title,
+      type: "Basemap",
+      metadataHtmlUrl: basemap.metadataHtmlUrl,
+      metadataXmlUrl: basemap.metadataXmlUrl,
+    })),
+    ...baseDataMetadataRecords.map((record) => ({
+      id: `basedata-${record.id}`,
+      name: record.name,
+      type: "Basedata",
+      metadataHtmlUrl: record.metadataHtmlUrl,
+      metadataXmlUrl: record.metadataXmlUrl,
+    })),
+  ];
+}
+
 export default function App() {
-  // Refs store OpenLayers objects. React state stores values that must update the UI.
+  // Refs store OpenLayers objects. Updating a ref does not re-render React,
+  // which is exactly what we want for map instances and map layer objects.
   const mapRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const mapBasemapsRef = useRef({});
@@ -179,6 +220,8 @@ export default function App() {
   const clickMarkerLayerRef = useRef(null);
   const copyFeedbackTimeoutRef = useRef(null);
 
+  // State stores values that the React interface must display immediately:
+  // checked layers, selected basemap, modal visibility, and query results.
   const [layers, setLayers] = useState(projectLayers);
   const [selectedBasemap, setSelectedBasemap] = useState(INITIAL_BASEMAP);
   const [selectedLegendLayerId, setSelectedLegendLayerId] = useState(null);
@@ -227,13 +270,15 @@ export default function App() {
     async (map, event) => {
       // Convert from the map's projection to familiar longitude/latitude numbers.
       const [lon, lat] = toLonLat(event.coordinate);
+      const clickedLon = lon.toFixed(5);
+      const clickedLat = lat.toFixed(5);
 
       setClickMarker(event.coordinate);
 
       setSelectedLocation({
         status: "loading",
-        lon: lon.toFixed(5),
-        lat: lat.toFixed(5),
+        lon: clickedLon,
+        lat: clickedLat,
         title: "Querying GeoServer...",
         result: null,
         error: null,
@@ -244,8 +289,8 @@ export default function App() {
       if (!layerConfig) {
         setSelectedLocation({
           status: "empty",
-          lon: lon.toFixed(5),
-          lat: lat.toFixed(5),
+          lon: clickedLon,
+          lat: clickedLat,
           title: "No queryable layer active",
           result: null,
           error: null,
@@ -299,8 +344,8 @@ export default function App() {
         if (features.length === 0) {
           setSelectedLocation({
             status: "empty",
-            lon: lon.toFixed(5),
-            lat: lat.toFixed(5),
+            lon: clickedLon,
+            lat: clickedLat,
             title: "No value found",
             result: {
               layerName: layerConfig.name,
@@ -317,8 +362,8 @@ export default function App() {
 
         setSelectedLocation({
           status: "success",
-          lon: lon.toFixed(5),
-          lat: lat.toFixed(5),
+          lon: clickedLon,
+          lat: clickedLat,
           title: "Feature information",
           result: {
             layerName: layerConfig.name,
@@ -333,8 +378,8 @@ export default function App() {
         // Keep failures visible in the side panel instead of hiding them in the console.
         setSelectedLocation({
           status: "error",
-          lon: lon.toFixed(5),
-          lat: lat.toFixed(5),
+          lon: clickedLon,
+          lat: clickedLat,
           title: "GetFeatureInfo failed",
           result: null,
           error:
@@ -417,9 +462,10 @@ export default function App() {
 
   useEffect(() => {
     // Modals and walkthrough cards can change available map space after rendering.
+    // A short delay lets the browser finish layout before OpenLayers measures it.
     const timeoutId = window.setTimeout(() => {
       mapInstanceRef.current?.updateSize();
-    }, 100);
+    }, MAP_RESIZE_DELAY_MS);
 
     return () => window.clearTimeout(timeoutId);
   }, [walkthroughStep, activeLayerInfo, isMetadataNoticeOpen]);
@@ -550,7 +596,7 @@ export default function App() {
 
     copyFeedbackTimeoutRef.current = window.setTimeout(() => {
       setCopiedAction(null);
-    }, 1800);
+    }, COPY_FEEDBACK_DURATION_MS);
   }
 
   async function copyWmsAccess(layerConfig) {
@@ -559,22 +605,7 @@ export default function App() {
 
   const activeBasemap = basemaps[selectedBasemap];
   const activeLayers = layers.filter((layer) => layer.active);
-  const metadataRows = [
-    ...layers.map((layer) => ({
-      id: `layer-${layer.id}`,
-      name: layer.name,
-      type: "Layer",
-      metadataHtmlUrl: layer.metadataHtmlUrl,
-      metadataXmlUrl: layer.metadataXmlUrl,
-    })),
-    ...Object.values(basemaps).map((basemap) => ({
-      id: `basemap-${basemap.id}`,
-      name: basemap.title,
-      type: "Basemap",
-      metadataHtmlUrl: basemap.metadataHtmlUrl,
-      metadataXmlUrl: basemap.metadataXmlUrl,
-    })),
-  ];
+  const metadataRows = createMetadataRows(layers);
   const defaultLegendLayer = getDefaultLegendLayer(layers);
 
   // If the user has not chosen a legend, follow the layer panel hierarchy.
@@ -591,6 +622,7 @@ export default function App() {
       <div className="background-glow glow-one" />
       <div className="background-glow glow-two" />
 
+      {/* First-run introduction shown before the guided walkthrough begins. */}
       {walkthroughStep === "intro" && (
         <div className="modal-backdrop">
           <section className="welcome-modal glass">
@@ -619,6 +651,7 @@ export default function App() {
         </div>
       )}
 
+      {/* About modal: project context, licences, authors, and AI disclosure. */}
       {isAboutOpen && (
         <div className="modal-backdrop" onClick={() => setIsAboutOpen(false)}>
           <section
@@ -683,6 +716,19 @@ export default function App() {
                 </div>
               </section>
 
+              <section
+                className="coding-assistance"
+                aria-labelledby="coding-assistance-title"
+              >
+                <h3 id="coding-assistance-title">Coding assistance</h3>
+                <p>
+                  The dashboard implementation was developed by the project
+                  authors with coding assistance from OpenAI Codex. The authors
+                  reviewed, edited, and take responsibility for the final code
+                  and content.
+                </p>
+              </section>
+
               <div className="modal-actions">
                 <button className="primary" onClick={startWalkthrough}>
                   Repeat walkthrough
@@ -693,6 +739,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Metadata modal: one table for layer, basemap, and base-data records. */}
       {isMetadataNoticeOpen && (
         <div
           className="modal-backdrop"
@@ -780,6 +827,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Walkthrough card shown beside the currently highlighted dashboard area. */}
       {activeWalkthroughStep && (
         <>
           <div className="walkthrough-backdrop" />
@@ -816,6 +864,7 @@ export default function App() {
         </>
       )}
 
+      {/* Layer information modal opened from the small "i" buttons. */}
       {currentActiveLayerInfo && (
         <div
           className="modal-backdrop"
@@ -940,6 +989,7 @@ export default function App() {
         </div>
       )}
 
+      {/* Top navigation and project resource links. */}
       <header className={`topbar glass${highlightClass("resources")}`}>
         <div>
           <p className="eyebrow">26S856263: SDI Services Implementation</p>
@@ -961,6 +1011,7 @@ export default function App() {
       </header>
 
       <main className="dashboard">
+        {/* Left panel: project layer categories, visibility toggles, opacity sliders. */}
         <aside className="panel glass">
           <div className="panel-header layer-panel-header">
             <h2>Choose What the Map Shows</h2>
@@ -1053,6 +1104,7 @@ export default function App() {
           </div>
         </aside>
 
+        {/* Center panel: OpenLayers map plus basemap selector and attribution. */}
         <section className={`map-card glass${highlightClass("map")}`}>
           <div className="map-toolbar">
             <div>
@@ -1115,6 +1167,7 @@ export default function App() {
           </footer>
         </section>
 
+        {/* Right panel: click-query results and the legend for visible layers. */}
         <aside className="panel glass">
           <div className="panel-header">
             <h2>Information</h2>

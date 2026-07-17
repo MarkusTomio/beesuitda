@@ -14,6 +14,9 @@ export const wmsEndpoint =
 export const gitlabWikiUrl =
   "https://git.sbg.ac.at/st26_856.213/beesuitda/-/wikis/home";
 
+const NATURA_LAYER_Z_INDEX = 1000;
+const SPECIES_LAYER_Z_INDEX_BASE = 900;
+
 // These groups become the collapsible headings in the layer panel.
 export const layerGroups = [
   {
@@ -42,6 +45,9 @@ export const layerGroups = [
   },
 ];
 
+// CORINE Land Cover is stored as numeric raster classes. This lookup turns the
+// raw cell value from GeoServer into the readable class name shown in the
+// feature-information panel after a map click.
 export const clcClassMap = {
   0: "Outside study area",
   1: "Continuous urban fabric",
@@ -98,6 +104,13 @@ export const clcClassMap = {
  * Each object below describes one GeoServer WMS layer: where it appears in the
  * panel, how it is queried, how transparent it starts, and how raw values should
  * be translated into readable text.
+ *
+ * Important fields:
+ * - id: stable key used by React state and OpenLayers layer refs.
+ * - group: connects the layer to one layerGroups entry.
+ * - geoserverLayer: workspace:layer name passed to GeoServer WMS.
+ * - valueType: tells formatFeatureInfo() how to display raw raster values.
+ * - active and opacity: initial UI/map state when the dashboard loads.
  *
  * The array order controls panel order. Rendering order is handled separately
  * by getLayerZIndex().
@@ -356,8 +369,91 @@ export const projectLayers = [
   },
 ];
 
+/**
+ * Metadata records for original base datasets.
+ *
+ * These are not toggleable dashboard layers. They are source/input datasets
+ * used to create the analysis layers, so App.jsx appends them to the metadata
+ * modal after the project layer and basemap records.
+ */
+export const baseDataMetadataRecords = [
+  {
+    id: "corine_land_cover_2018",
+    name: "CORINE Land Cover 2018",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/ebc99eb4-4bf8-43cc-a4a9-713808cd2349",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/ebc99eb4-4bf8-43cc-a4a9-713808cd2349/formatters/xml?approved=true",
+  },
+  {
+    id: "natura_2000_2024",
+    name: "Natura 2000",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/9b95cde3-86f0-4a6a-8247-a050e728ccf5",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/9b95cde3-86f0-4a6a-8247-a050e728ccf5/formatters/xml?approved=true",
+  },
+  {
+    id: "spartacus_v2_1_yearly",
+    name: "SPARTACUS v2.1 Jahresdaten",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/f8c76ace-b892-4de9-a625-4fc5d15c22a3",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/f8c76ace-b892-4de9-a625-4fc5d15c22a3/formatters/xml?approved=true",
+  },
+  {
+    id: "copernicus_dem_30m_europe",
+    name: "Copernicus DEM 30m for Europe",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/4e64636f-b190-444b-ba4f-469aacc60172",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/4e64636f-b190-444b-ba4f-469aacc60172/formatters/xml?approved=true",
+  },
+  {
+    id: "osm_water_features_salzburg",
+    name: "OSM Water Features for Land Salzburg",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/e9f04548-0ab8-4805-8f91-8003fdecb33c",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/e9f04548-0ab8-4805-8f91-8003fdecb33c/formatters/xml?approved=true",
+  },
+  {
+    id: "osm_roads_salzburg",
+    name: "OSM Roads for Land Salzburg",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/fca4c770-e6e1-4a0b-9397-5998e812e227",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/fca4c770-e6e1-4a0b-9397-5998e812e227/formatters/xml?approved=true",
+  },
+  {
+    id: "gbif_hornet_occurrences_salzburg",
+    name: "GBIF Hornet Occurrences for Land Salzburg",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/88b4fca1-1b01-45fe-9ee0-a6316fb98925",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/88b4fca1-1b01-45fe-9ee0-a6316fb98925/formatters/xml?approved=true",
+  },
+  {
+    id: "gbif_wild_bee_occurrences_salzburg",
+    name: "GBIF Wild Bee Occurrences for Land Salzburg",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/3b987183-97e5-46a1-a4df-5667377c9b5c",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/3b987183-97e5-46a1-a4df-5667377c9b5c/formatters/xml?approved=true",
+  },
+  {
+    id: "gbif_honey_bee_occurrences_salzburg",
+    name: "GBIF Honey Bee Occurrences for Land Salzburg",
+    metadataHtmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/eng/catalog.search#/metadata/4f2ef8fd-179d-4b16-b081-664ad24956c5",
+    metadataXmlUrl:
+      "https://geoserver22s.zgis.at/geonetwork/srv/api/records/4f2ef8fd-179d-4b16-b081-664ad24956c5/formatters/xml?approved=true",
+  },
+];
+
 export function createWmsLayer(layerConfig) {
   // Turn one layer description from the catalog into a real OpenLayers WMS layer.
+  // React owns the checkbox state; OpenLayers owns the actual map rendering.
   return new TileLayer({
     visible: layerConfig.active,
     opacity: layerConfig.opacity,
@@ -376,10 +472,14 @@ export function createWmsLayer(layerConfig) {
 }
 
 export function getLayerZIndex(layerConfig) {
+  // Higher z-index values draw above lower values. Natura 2000 is a boundary
+  // style and should stay readable above all raster layers.
   if (layerConfig.id === "natura2000") {
-    return 1000;
+    return NATURA_LAYER_Z_INDEX;
   }
 
+  // Species density layers should sit above the other criteria when enabled.
+  // Their relative order still follows the order in projectLayers.
   if (layerConfig.group === "species") {
     const speciesLayerIds = projectLayers
       .filter((layer) => layer.group === "species")
@@ -388,9 +488,10 @@ export function getLayerZIndex(layerConfig) {
       (layerId) => layerId === layerConfig.id
     );
 
-    return 900 + (speciesLayerIds.length - speciesIndex);
+    return SPECIES_LAYER_Z_INDEX_BASE + (speciesLayerIds.length - speciesIndex);
   }
 
+  // For all other layers, earlier panel entries render above later entries.
   const displayIndex = projectLayers.findIndex(
     (layer) => layer.id === layerConfig.id
   );
@@ -399,8 +500,10 @@ export function getLayerZIndex(layerConfig) {
 }
 
 export function getLayerLegendPriority(layerConfig) {
+  // The legend selector follows almost the same priority as rendering. The only
+  // special rule is that Natura 2000 stays the default legend when active.
   if (layerConfig.id === "natura2000") {
-    return 1000;
+    return NATURA_LAYER_Z_INDEX;
   }
 
   const displayIndex = projectLayers.findIndex(
@@ -424,6 +527,8 @@ export function getLegendUrl(layerConfig) {
 }
 
 export function getLayerWmsUrl(layerConfig) {
+  // GeoServer exposes each layer through a layer-specific WMS endpoint:
+  // /geoserver/{workspace}/{layerName}/wms.
   const [workspace, layerName] = layerConfig.geoserverLayer.split(":");
   const geoserverRoot = wmsEndpoint.replace(/\/[^/]+\/wms$/, "");
 
@@ -431,6 +536,8 @@ export function getLayerWmsUrl(layerConfig) {
 }
 
 export function getLayerWmsCapabilitiesUrl(layerConfig) {
+  // Capabilities XML describes this one layer endpoint and is useful for
+  // debugging or consuming the layer in external GIS clients.
   const params = new URLSearchParams({
     SERVICE: "WMS",
     REQUEST: "GetCapabilities",
@@ -452,7 +559,8 @@ export function getWmsCapabilitiesUrl() {
 }
 
 function getRawRasterValue(properties) {
-  // GeoServer commonly returns raster cell values as GRAY_INDEX.
+  // GeoServer commonly returns raster cell values as GRAY_INDEX. The fallback
+  // keeps the dashboard useful if a layer returns a differently named property.
   if (!properties) return null;
 
   if ("GRAY_INDEX" in properties) {
@@ -480,6 +588,7 @@ function toNumber(value) {
 }
 
 function formatNumber(value, digits = 2) {
+  // Centralized number formatting keeps map-query values visually consistent.
   return new Intl.NumberFormat("en-US", {
     minimumFractionDigits: digits,
     maximumFractionDigits: digits,
@@ -487,6 +596,8 @@ function formatNumber(value, digits = 2) {
 }
 
 function formatInteger(value) {
+  // Raster values are often decimals internally, but most dashboard displays
+  // should read as whole units such as metres, millimetres, or class values.
   return new Intl.NumberFormat("en-US", {
     maximumFractionDigits: 0,
   }).format(Math.round(value));
@@ -507,12 +618,14 @@ function formatSecondsAsHoursMinutes(seconds) {
 }
 
 function outsideStudyArea() {
+  // The analysis rasters use -9999 as a NoData/outside-study-area marker.
   return {
     primaryValue: "Outside study area",
   };
 }
 
 function noValue() {
+  // Shared fallback for null, empty, or non-numeric GeoServer responses.
   return {
     primaryValue: "No value returned",
     note: "GeoServer did not return a usable raster value for this location.",
@@ -525,6 +638,10 @@ function noValue() {
  *
  * Example: GeoServer may return "4" for the suitability layer; the dashboard
  * shows "High suitability" so the user does not need to know the class code.
+ * Each return object can include:
+ * - primaryValue: main value shown in large text.
+ * - secondaryValue: optional small context line above the main value.
+ * - note: optional explanatory text below the main value.
  */
 export function formatFeatureInfo(layerConfig, properties) {
   const rawValue = getRawRasterValue(properties);
